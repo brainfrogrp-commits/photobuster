@@ -15,6 +15,7 @@ Built with SwiftUI and PhotoKit, no third-party code. Needs iOS 17 or later and 
 
 ```
 PhotoSwipeCleaner.xcodeproj    the Xcode project (open this)
+scripts/make-ipa.sh            builds an .ipa file for SideStore
 PhotoSwipeCleaner/
   PhotoSwipeCleanerApp.swift   app entry point
   ContentView.swift            photo-access screens (ask, denied, limited)
@@ -65,9 +66,68 @@ PhotoSwipeCleaner/
 3. Open **Photo Cleaner** from the home screen, or press ▶ Run in Xcode again.
 4. When asked about photos, choose **Allow Full Access**.
 
-## Every 7 days: reinstall
+## Every 7 days: reinstall (or use SideStore)
 
-Apps signed with a free Apple ID stop opening after 7 days. When that happens, plug in the phone, open the project in Xcode, and press **▶ Run**. That installs it over the old copy, and your accepted photos, queue, and progress are kept. **Don't delete the app from the phone first**, because deleting it erases the saved progress.
+Apps signed with a free Apple ID stop opening after 7 days. You have two choices:
+
+- **Reinstall from Xcode:** plug in the phone, open the project, and press **▶ Run**. That installs it over the old copy and keeps your progress. **Don't delete the app from the phone first**, because deleting it erases the saved progress.
+- **Use SideStore** so the phone renews the app by itself, with no computer. See the next section.
+
+---
+
+## Optional: no more weekly reinstalls with SideStore
+
+[SideStore](https://github.com/SideStore/SideStore) is a free, open-source app that re-signs apps on your iPhone with your free Apple ID before the 7 days run out. You set it up once with your Mac, and after that it renews over Wi-Fi with no computer.
+
+**Before you start**
+
+- **Your progress won't carry over from the Xcode copy.** SideStore installs the app under a slightly different bundle ID (it adds your team ID to the end), so iOS treats it as a separate app with its own saved data. Switch before you've done much swiping, or finish your current session and Review & Delete first. After the switch, delete the Xcode-installed copy so you don't confuse the two.
+- **Free Apple ID limits:** at most **3 sideloaded apps at once**, and SideStore counts as one. You can also only register **10 app IDs per week**.
+- You'll type your Apple ID password into iloader and SideStore. They only send it to Apple, but many people use a **second, spare Apple ID** for sideloading. You can do that too.
+- Developer Mode must stay on (see step 3 above).
+
+**A. Make the app file (on your Mac)**
+
+1. Do steps 1–2 above so the project is on your Mac and Xcode is installed.
+2. Open **Terminal** (press ⌘Space, type *Terminal*, press Return).
+3. Type `cd ` (with a space after it), drag the project folder from Finder into the Terminal window, and press Return.
+4. The first time only, run these two commands. Each asks for your Mac password, which doesn't show as you type.
+   ```
+   sudo xcode-select -s /Applications/Xcode.app
+   sudo xcodebuild -license accept
+   ```
+5. Run:
+   ```
+   ./scripts/make-ipa.sh
+   ```
+   After a minute it prints **Done** and opens a Finder window showing **PhotoSwipeCleaner.ipa**.
+6. Send that file to your iPhone. The easiest way is **AirDrop**: right-click it, choose **Share → AirDrop**, and pick your phone. On the phone, when asked how to open it, choose to save it in **Files**.
+
+**B. Install SideStore (once)**
+
+1. On the iPhone, install **LocalDevVPN** from the App Store. Open it once and allow it to add a VPN configuration.
+2. On the Mac, download **iloader** from its official page, [github.com/nab138/iloader](https://github.com/nab138/iloader) under **Releases** (or iloader.app). Those are the only official sources, so don't download it from anywhere else.
+3. Plug the iPhone into the Mac, unlock it, and tap **Trust** if asked.
+4. Open iloader, sign in with your Apple ID, and choose **Install SideStore**. iloader installs it and sets up the pairing file it needs.
+5. On the iPhone, trust the developer in **Settings → General → VPN & Device Management** (as in step 5 above), then open **SideStore** and sign in with the same Apple ID if asked.
+
+**C. Install Photo Cleaner through SideStore**
+
+1. On the iPhone, turn on **LocalDevVPN**. It must be connected whenever SideStore installs or refreshes an app.
+2. Open **SideStore**, go to **My Apps**, tap **+**, and choose **PhotoSwipeCleaner.ipa** from Files.
+3. When it finishes, open **Photo Cleaner** and allow full photo access.
+
+**D. Keep it renewed automatically**
+
+SideStore shows how many days each app has left in **My Apps**. Tap **Refresh All** there any time, with LocalDevVPN on. To have it done for you:
+
+1. Open the **Shortcuts** app, go to **Automation**, tap **+**, and choose **Time of Day**. Pick a daily time when the phone is usually on Wi-Fi, such as overnight, and choose **Run Immediately**.
+2. For the action, add **LocalDevVPN**'s connect action (if it offers one) and then SideStore's **Refresh All Apps** action.
+3. Run it once by hand so iOS asks for any permissions it needs.
+
+If a refresh ever fails, open SideStore with LocalDevVPN on and tap **Refresh All**. If SideStore itself stops opening after 7 days, plug into the Mac and use iloader to install SideStore again. Your apps and their data stay put.
+
+**Updating the app later:** run `./scripts/make-ipa.sh` again, AirDrop the new file, and install it from SideStore's **+** button the same way. It replaces the old version and keeps your progress.
 
 ---
 
